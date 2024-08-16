@@ -19,7 +19,7 @@ website:
         - href: scripts/analyseStormEventsData.qmd
           text: Analyse Data
       - href: scripts/powerSimulations.qmd
-      - text: Power Analyses
+        text: Power Analyses
 
 format:
   html:
