@@ -11,5 +11,9 @@
   "scripts/analyseStormEventsData.qmd": {
     "analyseStormEventsData.html": "8c661812",
     "analyseStormEventsData.tex": "a8744702"
+  },
+  "scripts/powerSimulations.qmd": {
+    "powerSimulations.html": "b5245d0f",
+    "powerSimulations.tex": "c373f87a"
   }
 }

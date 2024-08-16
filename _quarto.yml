@@ -5,10 +5,11 @@ project:
   render:
     - "scripts/accessStormEventsData.qmd"
     - "scripts/analyseStormEventsData.qmd"
+    - "scripts/powerSimulations.qmd"
     - "index.qmd"
 
 website:
-  title: "EcoTRACE RR SOM"
+  title: "EcoTRACE"
   navbar:
     left:
       - text: Preprocessing Storm Events
@@ -17,6 +18,8 @@ website:
           text: Access & Tidy Data
         - href: scripts/analyseStormEventsData.qmd
           text: Analyse Data
+      - href: scripts/powerSimulations.qmd
+      - text: Power Analyses
 
 format:
   html:
