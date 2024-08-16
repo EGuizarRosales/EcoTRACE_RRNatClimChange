@@ -1,0 +1,755 @@
+---
+title: "Storm Events Data: Access & Tidying"
+author: "Emmanuel Guizar Rosales"
+date: "2024-08-16"
+date-format: "[last rendered on:] MMM D, YYYY"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    toc-expand: 2
+    number-sections: true
+    code-fold: true
+    code-summary: "Show the code"
+editor: visual
+execute: 
+  include: true
+  echo: true
+  message: false
+  warning: false
+  cache: true
+editor_options: 
+  chunk_output_type: console
+params:
+  currentYear: 2023
+  currentMonths: !expr month.name[1:8]
+bibliography: references_accessStormEventsData.bib
+---
+
+```{r}
+#| label: setup
+
+# install package librarian if needed
+if (!("librarian" %in% rownames(installed.packages()))) {
+  install.packages("librarian")
+}
+
+# load required packages
+librarian::shelf(
+  ropensci/rnoaa,
+  openxlsx,
+  tidyverse,
+  DT,
+  usmap
+)
+```
+
+# Access Data
+
+## Download Storm Events Data
+
+We will use the [Storm Events Database](https://www.ncdc.noaa.gov/stormevents/) operated by the US National Oceanic and Atmospheric Administration. Full documentation regarding this database can be found [here](https://www.nws.noaa.gov/directives/sym/pd01016005curr.pdf). A detailed variable codebook is found [here](https://www.ncei.noaa.gov/pub/data/swdi/stormevents/csvfiles/Storm-Data-Bulk-csv-Format.pdf).
+
+There is a handy R package that allows to download different NOAA data products: [rnoaa](https://github.com/ropensci/rnoaa). We use the functions `se_files()` and `se_data`.
+
+We first want to get a feeling for all available files:
+
+```{r}
+#| label: showFiles_se_files
+
+# read in meta data of available files
+se_availableFiles <- se_files()
+
+# get an overview of metadata
+cat("Structure of meta data:\n")
+str(se_availableFiles)
+
+# display unique file types
+cat("\nUnique file types:\n")
+unique(se_availableFiles$type)
+```
+
+We will mostly be interested in "details", "locations", and (maybe) "fatalities". What is the most recent data available for these files?
+
+```{r}
+#| label: showRecentFiles
+
+se_availableFiles %>% 
+  filter(year > 2020) %>% 
+  arrange(desc(year)) %>% 
+  select(-url) %>% 
+  knitr::kable()
+```
+
+Now, let's read in "details", "locations", and "fatalities for the years `r params$currentYear - 10` up to `r params$currentYear`
+
+```{r}
+#| label: readInStormData
+#| message: false
+#| eval: false
+
+# define simple function (putting code in fuctions prevents workspace from being
+# clutered with variables we will not use again)
+read_in_storm_data <- function(
+    years_to_read_in = seq(params$currentYear - 10, params$currentYear, 1),
+    types_to_read_in = c("details", "locations", "fatalities")
+    ) {
+  
+  # initialize data_list
+  data_list <- vector("list", length = length(years_to_read_in))
+  names(data_list) <- years_to_read_in
+  for (year in seq(1, length(years_to_read_in))) {
+    data_list[[year]] <- vector("list", length = length(types_to_read_in))
+    names(data_list[[year]]) <- as.character(types_to_read_in)
+  }
+  
+  # read in data over nested loop
+  for (i in seq(1,length(years_to_read_in))) {
+    for (j in seq(1,length(types_to_read_in))) {
+      currentData <- se_data(year = years_to_read_in[i], type = types_to_read_in[j])
+      data_list[[i]][[j]] <- currentData
+    }
+  }
+  
+  # save data_list
+  time <- format(Sys.time(), "%Y%m%d")
+  fileName <- paste0(time, "_data_list.RDS")
+  saveRDS(data_list, file = file.path("../data/stormData", fileName))
+  # to read in data, use:
+  # data_list <- readRDS("../0_Data/data_list.RDS")
+  
+  return(data_list)
+}
+
+# call function and store results in data_list
+data_list <- read_in_storm_data()
+```
+
+```{r}
+#| label: readInStormData_fromSaved
+
+# load most recent data_list file
+fileName <- "data_list.RDS"
+pathName <- "../data/stormData"
+filePath <- fs::dir_ls(path = pathName, regexp = paste0(fileName, "$")) %>% last()
+data_list <- readRDS(filePath)
+```
+
+## Inspect Data Structures
+
+What is the structure of "details", "locations", and "fatalities"?
+
+### Details
+
+```{r showStructureDetails}
+#| label: showStructureDetails
+data_list[[as.character(params$currentYear)]]$details %>% 
+  select(-c(episode_narrative, event_narrative)) %>% 
+  head(.,10) %>% 
+  datatable(options = list(scrollY = "300px"), fillContainer = TRUE)
+```
+
+Note: two additional variables are not included in the table above:
+
+-   `episode_narrative` (example:) `r data_list[[as.character(params$currentYear)]]$details$episode_narrative[1]`
+-   `event_narrative` (example:) `r data_list[[as.character(params$currentYear)]]$details$event_narrative[1]`
+
+### Locations
+
+```{r}
+#| label: showStructureLocations
+
+data_list[[as.character(params$currentYear)]]$locations %>% 
+  head(.,10) %>% 
+  datatable(options = list(scrollY = "300px"), fillContainer = TRUE)
+```
+
+### Fatalities
+
+```{r}
+#| label: showStructureFatalities
+
+data_list[[as.character(params$currentYear)]]$fatalities %>% 
+  head(.,10) %>% 
+  datatable(options = list(scrollY = "300px"), fillContainer = TRUE)
+```
+
+## Recency of Data
+
+What is the most recent data available in "details" for `params$currentYear`?
+
+```{r}
+#| label: recencyDetails
+
+data_list[[as.character(params$currentYear)]]$details %>% 
+  mutate(arrange_date = strptime(end_date_time, format = "%d-%b-%y %H:%M:%S") %>% as_datetime()) %>% 
+  arrange(desc(arrange_date)) %>% 
+  .$end_date_time %>% .[1]
+```
+
+## Create Combined Datasets
+
+```{r}
+#| label: createCombinedDatasets
+#| eval: false
+
+data_details <- tibble()
+for (i in seq(1, length(data_list))) {
+  data_details <- rbind(data_details, data_list[[i]]$details)
+}
+
+data_locations <- tibble()
+for (i in seq(1, length(data_list))) {
+  data_locations <- rbind(data_locations, data_list[[i]]$locations)
+}
+
+data_fatalities <- tibble()
+for (i in seq(1, length(data_list))) {
+  data_fatalities <- rbind(data_fatalities, data_list[[i]]$fatalities)
+}
+
+# since we will mostly work with data_details, let's save this data set
+time <- format(Sys.time(), "%Y%m%d")
+fileName <- paste0(time, "_data_details.RDS")
+saveRDS(data_details, file = file.path("../data/stormData", fileName))
+```
+
+# Tidy Data
+
+## Simple Tidying
+
+We will mainly work with `data_details`. Let's tidy up this data (convert some integers to characters, some characters to integers, and some characters to date-time format).
+
+```{r}
+#| label: tidyUpDataDetails
+
+# load most recent data_details
+fileName <- "data_details.RDS"
+pathName <- "../data/stormData"
+filePath <- fs::dir_ls(path = pathName, regexp = paste0(fileName, "$")) %>% last()
+data_details <- readRDS(filePath)
+
+# convert some integers to characters so that they are not mistakenly treated
+# as integers
+toChar <- c(
+  "episode_id", "event_id",
+  "state_fips", "cz_fips",
+  "category",
+  "tor_other_cz_fips"
+)
+data_details <- data_details %>% 
+  mutate(across(all_of(toChar), as.character))
+rm(toChar)
+
+# for damage values, we need to convert strings like
+# "3.12M" and "117.00K" to integer values. We define a function to do so:
+convert_to_integer <- function(x) {
+  multiplier <- c("K" = 1000, "M" = 1000000)
+  numeric_part <- as.numeric(sub("[^0-9.]", "", x))
+  multiplier_part <- substr(x, nchar(x), nchar(x))
+  multiplier_value <- multiplier[multiplier_part]
+  return(as.integer(numeric_part * multiplier_value))
+}
+# apply function to "damage" variables
+data_details <- data_details %>% 
+  mutate(across(contains("damage"), convert_to_integer))
+rm(convert_to_integer)
+
+# convert some character columns to date-time format
+data_details <- data_details %>% 
+  mutate(across(contains("date_time"), dmy_hms))
+
+# store month_name as factor with the correct order of months as levels
+data_details <- data_details %>% 
+  mutate(month_name = factor(month_name, levels = month.name))
+
+# state_fips need to be two digits long. If the first digit was zero, this leading
+# zero was removed during the read in process of the data. This is corrected
+# using str_pad. Similarly, cz_fips needs to be three digits long.
+data_details <- data_details %>% 
+  mutate(state_fips = str_pad(state_fips, width = 2, side = "left", pad = "0")) %>% 
+  mutate(cz_fips = str_pad(cz_fips, width = 3, side = "left", pad = "0"))
+```
+
+## FIPS Tidying
+
+For various forms of analyses, we will need the Federal Information Processing System (FIPS) Codes for States and Counties. For instance, we will need this information to associate specific extreme weather events with certain geographical regions (mostly Counties). The package [usmap](https://github.com/pdil/usmap), which we will use to display geographical distributions of extreme weather events, works with county FIPS. Therefore, we need to tidy up our data to show events that conform to such FIPS data. The FIPS information is stored in two separate variables in the data set: `state_fips` and `cz_fips`.
+
+**Note that the storm event database assigns FIPS not only to County/Parish (`cz_type == "C"`), but also NWS Public Forecast Zone and Marine Zones (`cz_type == "Z"`).**
+
+Thus, the meaning of variable `cz_fips` depends on `cz_type`. Therefore, we first need to convert Z-type FIPS to C-type FIPS. There is a [mapping](https://www.nws.noaa.gov/directives/sym/pd01005007curr.pdf) of Forecast Zones onto County FIPS we can use for this. In the following code block, we
+
+1.  create a data set `mappingData` with all the information to map NWS Forecast Zones to County FIPS and
+
+2.  use this mapping information to create a variable `county_fips` representing the County FIPS and
+
+3.  ultimately create a variable `state_county_fips` representing the full FIPS identifying each County in each State.
+
+```{r}
+#| label: FUNConvertFips
+#| eval: false
+
+FUNConvertFips <- function(myData) {
+  
+  # define vector of urls to .txt files containing the mapping information
+  urlsToFiles <- c(
+    "https://www.weather.gov/source/pimar/PubRep/PUB_AR.txt",
+    "https://www.weather.gov/source/pimar/PubRep/PUB_CR.txt",
+    "https://www.weather.gov/source/pimar/PubRep/PUB_ER.txt",
+    "https://www.weather.gov/source/pimar/PubRep/PUB_PR.txt",
+    "https://www.weather.gov/source/pimar/PubRep/PUB_SR.txt",
+    "https://www.weather.gov/source/pimar/PubRep/PUB_WR.txt"
+  )
+  
+  # define the variable names of each column in these files
+  varNames <- c(
+    "state_abr",
+    "id_zone",
+    "location_descr",
+    "county",
+    "fips",
+    "city",
+    "state_city_abr"
+  )
+  
+  # define a function to read in the files
+  FUNReadFiles <- function(myURL) {
+    dataOut <- read.table(
+      file = myURL,
+      sep = "|",
+      header = FALSE,
+      quote = "",
+      colClasses = "character",
+      fill = FALSE
+    )
+    names(dataOut) <- varNames
+    return(dataOut)
+  }
+  
+  # "loop" over this function and continuously combine read in data into one data frame
+  mappingData <- plyr::ldply(urlsToFiles, FUNReadFiles) %>% 
+    as_tibble()
+  
+  # create data set that maps state abbreviations to full state names
+  mapping_states_abbr <- usmap::fips_info() %>%
+    as_tibble() %>% 
+    select(abbr, full) %>% 
+    mutate(state = toupper(full)) %>% 
+    select(-full)
+  
+  # combine mappingData with mapping_states_abbr
+  mappingData <- mappingData %>% 
+    left_join(y = mapping_states_abbr, by = c("state_abr" = "abbr")) %>% 
+    relocate(state, .after = state_abr) %>% 
+    mutate(cz_fips = id_zone) %>% 
+    relocate(cz_fips, .after = id_zone) %>% 
+    mutate(county_fips = str_extract(fips, ".{3}$")) %>% 
+    relocate(county_fips, .after = fips)
+  
+  # subset myData to myData_czTypeC and myData_czTypeZ
+  myData_czTypeC <- myData %>% 
+    filter(cz_type == "C")
+  myData_czTypeZ <- myData %>% 
+    filter(cz_type == "Z")
+  
+  # define county_fips in myData_czTypeC
+  myData_czTypeC <- myData_czTypeC %>% 
+    mutate(county_fips = cz_fips)
+  
+  # define county_fips in myData_czTypeZ
+  # first, create a temporary dataset
+  tmp <- left_join(
+    x = myData_czTypeZ,
+    y = mappingData %>% 
+      select(state, cz_fips, county_fips),
+    by = c("state", "cz_fips"),
+    relationship = "many-to-many"
+  )
+  # then, create a list with meta information for myData_czTypeZ
+  myData_czTypeZ_meta <- list(
+    county_fips_isNA = tmp %>% filter(is.na(county_fips)),
+    event_id_isDoublicated = tmp %>% filter(duplicated(event_id)),
+    myData_czTypeZ_raw = tmp,
+    myData_czTypeZ_county_fips_isNA.removed = tmp %>% filter(!is.na(county_fips))
+  )
+  # define myData_czTypeZ
+  # note that we only retain events whose county_fips is not NA! To see where
+  # these NAs come from, see myData_czTypeZ_meta$county_fips_isNA
+  myData_czTypeZ <- myData_czTypeZ_meta$myData_czTypeZ_county_fips_isNA.removed
+  
+  # join myData_czTypeC and myData_czTypeZ
+  if (all(names(myData_czTypeC) == names(myData_czTypeZ))) {
+    myData_fips <- rbind(
+      myData_czTypeC,
+      myData_czTypeZ
+    )
+  } else {
+    stop("all(names(myData_czTypeC) == names(myData_czTypeZ)) != TRUE")
+  }
+  
+  # create variable state_county_fips representing the full and correct fips for each county
+  myData_fips <- myData_fips %>% 
+    mutate(state_county_fips = str_c(state_fips, county_fips))
+  
+  return(list(
+    myData_fips = myData_fips,
+    myData_czTypeZ_meta = myData_czTypeZ_meta
+  ))
+  
+}
+
+# call function
+out_FUNConvertFips <- FUNConvertFips(data_details)
+
+# define data_details_fips
+data_details_fips <- out_FUNConvertFips$myData_fips
+
+# save data_details_fips
+time <- format(Sys.time(), "%Y%m%d")
+fileName <- paste0(time, "_data_details_fips_raw.RDS")
+saveRDS(data_details_fips, file = file.path("../data/stormData", fileName))
+```
+
+After these changes, some challenges remain, which become obvious, if we try to match the FIPS provided in the data set with current FIPS available in `usmap`.
+
+```{r}
+#| label: identifyProblemsWithFips
+
+# load most recent data_details_fips
+fileName <- "data_details_fips_raw.RDS"
+pathName <- "../data/stormData"
+filePath <- fs::dir_ls(path = pathName, regexp = paste0(fileName, "$")) %>% last()
+data_details_fips <- readRDS(filePath)
+
+# capture the warning message produced if we apply usmap::fips_info to
+# all unique state_county_fips in data_details_fips
+warning_message <- tryCatch({
+  result <- fips_info(fips = unique(as.character(data_details_fips$state_county_fips)))
+}, warning = function(w) {
+  return(conditionMessage(w))
+})
+unmatched_fips <- str_extract_all(warning_message, "\\b\\d{5}\\b")[[1]] %>% unique()
+
+# create a tibble containing all unmatched fips
+unmatched_fips <- tibble(
+  state_county_fips = unmatched_fips,
+  state_fips = state_county_fips %>% 
+    str_extract("^.{2}"),
+  county_fips = state_county_fips %>% 
+    str_extract(".{3}$")
+) %>% 
+  arrange(state_county_fips)
+
+# in which states do we find unmatched fips?
+unmatched_fips_states <- unmatched_fips %>% 
+  distinct(state_fips) %>% 
+  left_join(
+    y = usmap::fips_info(),
+    by =c("state_fips" = "fips")
+  )
+
+# # inspect the main land states that had unmatched fips
+# unmatched_fips_states_mainLand <- unmatched_fips_states %>% 
+#   filter(!is.na(abbr))
+# plot_usmap(regions = "counties", include = unmatched_fips_states_mainLand$abbr[1], labels = TRUE)
+# plot_usmap(regions = "counties", include = unmatched_fips_states_mainLand$abbr[2], labels = TRUE)
+# unmatched_fips %>%
+#   filter(state_fips == "02")
+# 
+# data_details_fips %>% 
+#   filter(state_fips %in% (unmatched_fips_states %>% 
+#            filter(is.na(abbr)) %>% 
+#            pull(state_fips))) %>% 
+#   select(state, cz_name) %>% 
+#   distinct(state)
+```
+
+```{r}
+#| label: tbl-unmatchedFips
+#| tbl-cap: FIPS in data_details_fips that do not match with current FIPS as provided by `usmap`.
+
+datatable(unmatched_fips)
+```
+
+```{r}
+#| label: tbl-unmatchedFipsStates
+#| tbl-cap: States associated with the unmatched FIPS reported in @tbl-unmatchedFips.
+
+knitr::kable(unmatched_fips_states)
+```
+
+What is the origin of these unmatched FIPS? First, as listed in @tbl-terretoriesOfUS, `state_fips` `r seq(96, 99, 1)` are assigned to the following states that are considered territories (and not states) of the US. We will exclude these territories in further analyses.
+
+```{r}
+#| label: tbl-terretoriesOfUS
+#| tbl-cap: Terretories of the US in the `data_details_fips`
+
+data_details_fips %>%
+  filter(state_fips %in% (unmatched_fips_states %>%
+           filter(is.na(abbr)) %>%
+           pull(state_fips))) %>%
+  distinct(state_fips, .keep_all = TRUE) %>% 
+  select(state_fips, state) %>% 
+  knitr::kable()
+```
+
+Second, there are many unmatched FIPS in the state of Alaska (@tbl-unmatchedFipsAlaska). This is due to the fact that Alaska had substantial changes to counties and their boundaries over the years (see [here](https://www.census.gov/programs-surveys/geography/technical-documentation/county-changes.2010.html#list-tab-957819518)). Consistent information on how to map old counties to new counties is not readily available. We will exclude Alaska from further analyses.
+
+```{r}
+#| label: tbl-unmatchedFipsAlaska
+#| tbl-cap: Unmatched FIPS in the state of Alaska.
+
+data_details_fips %>% 
+  filter(state_county_fips %in% filter(unmatched_fips, state_fips == "02")$state_county_fips) %>% 
+  select(state_county_fips, state, cz_name) %>% 
+  distinct() %>% 
+  datatable()
+
+# # are there unmatched FIPS for Alaska in the latest year data? - YES
+# data_details_fips %>% 
+#   filter(year == params$currentYear, state_fips == "02") %>% 
+#   filter(state_county_fips %in% unmatched_fips$state_county_fips) %>% 
+#   select(state_county_fips, state, cz_name)
+```
+
+Third, there were substantial changes in the state of Connecticut: Originally, it consisted of 8 counties. After the changes, these counties were replaced with 9 new counties (for more information, see [here](https://www.census.gov/programs-surveys/geography/technical-documentation/county-changes.2020.html#list-tab-957819518) and [here](https://www.federalregister.gov/documents/2022/06/06/2022-12063/change-to-county-equivalents-in-the-state-of-connecticut)). The old counties map to the new counties according to @tbl-connecticutNewPlanningReagions-fineGrained.
+
+```{r}
+#| label: tbl-connecticutNewPlanningReagions-fineGrained
+#| tbl-cap: Connecticut exact mapping of old counties to new counties.
+
+# read in xlsx file mapping old counties and FIPS to new counties and FIPS
+connecticut_newPlanningRegions <- openxlsx::read.xlsx(
+  xlsxFile = "https://www2.census.gov/geo/docs/reference/ct_change/ct_cou_to_cousub_crosswalk.xlsx"
+) %>% 
+  as_tibble() %>% 
+  select(c(1:5))
+
+# rename variable names
+names(connecticut_newPlanningRegions) <- c(
+  "state_fips",
+  "old_county_fips",
+  "old_county_name",
+  "new_county_fips",
+  "new_county_name"
+)
+
+# select distinct combinations of our variables of interest
+connecticut_newPlanningRegions <- connecticut_newPlanningRegions %>% 
+  distinct(state_fips, old_county_fips, new_county_fips, .keep_all = TRUE)
+
+# combine state and county fips
+connecticut_newPlanningRegions <- connecticut_newPlanningRegions %>% 
+  mutate(state_county_fips_old = paste0(state_fips, old_county_fips),
+         state_county_fips_new = paste0(state_fips, new_county_fips))
+
+# display table
+datatable(connecticut_newPlanningRegions)
+```
+
+However, this mapping is too fine grained for our purposes. A better mapping can be achieved following @fig-connecticutOldToNewCountiesMapping, which results in the following mapping summarized in @tbl-connecticutNewPlanningReagions-lessFineGrained.
+
+![Mapping of old to new counties in Connecticut.](https://img.federalregister.gov/EN06JN22.001/EN06JN22.001_original_size.png){#fig-connecticutOldToNewCountiesMapping}
+
+```{r}
+#| label: tbl-connecticutNewPlanningReagions-lessFineGrained
+#| tbl-cap: Connecticut mapping of old counties to new counties.
+
+
+# https://www.federalregister.gov/documents/2022/06/06/2022-12063/change-to-county-equivalents-in-the-state-of-connecticut
+
+old_fips <- unmatched_fips %>% 
+  filter(state_fips == "09") %>% 
+  arrange(state_county_fips) %>% 
+  pull(state_county_fips)
+old_counties <- c(
+  "Fairfield",
+  "Harford",
+  "Litchfield",
+  "Middlesex",
+  "New Haven",
+  "New London",
+  "Tolland",
+  "Windham"
+)
+old <- tibble(
+  old_county = old_counties,
+  old_fips = old_fips
+)
+
+new_counties <- c(
+  "Greater Bridgeport Planning Region",
+  "Western Connecticut Planning Region",
+  "Capitol Planning Region",
+  "Northwest Hills Planning Region",
+  "Lower Connecticut River Valley Planning Region",
+  "Naugatuck Valley Planning Region",
+  "South Central Connecticut Planning Region",
+  "Southeastern Connecticut Planning Region",
+  "Northeastern Connecticut Planning Region"
+)
+new_fips <- usmap::fips(state = "CT", county = new_counties)
+new <- tibble(
+  new_county = new_counties,
+  new_fips = new_fips
+)
+
+old_counties_to_new_counties <- tibble(
+  old_county = c(
+    "Fairfield",
+    "Fairfield",
+    "Harford",
+    "Tolland",
+    "Litchfield",
+    "Middlesex",
+    "New Haven",
+    "New Haven",
+    "New London",
+    "Windham"
+  ),
+  new_county = c(
+    "Greater Bridgeport Planning Region",
+    "Western Connecticut Planning Region",
+    "Capitol Planning Region",
+    "Capitol Planning Region",
+    "Northwest Hills Planning Region",
+    "Lower Connecticut River Valley Planning Region",
+    "Naugatuck Valley Planning Region",
+    "South Central Connecticut Planning Region",
+    "Southeastern Connecticut Planning Region",
+    "Northeastern Connecticut Planning Region"
+  )
+)
+
+connecticut_newPlanningRegions <- left_join(
+  x = old_counties_to_new_counties,
+  y = old,
+  by = "old_county"
+) %>% 
+  left_join(
+    y = new,
+    by = "new_county"
+  )
+
+# do some renamign and add new_county_fips
+connecticut_newPlanningRegions <- connecticut_newPlanningRegions %>% 
+  rename(
+    old_state_county_fips = old_fips,
+    new_state_county_fips = new_fips
+  ) %>% 
+  mutate(new_county_fips = new_state_county_fips %>% str_extract(".{3}$"))
+
+datatable(connecticut_newPlanningRegions)
+```
+
+Now we apply the changes mentioned above to `data_details_fips`:
+
+1.  remove US territories from data set
+
+2.  remove state of Alaska from data set
+
+3.  apply new county names and FIPS to the state of Connecticut
+
+```{r}
+#| label: applyAdditionalFipsChanges
+#| eval: false
+
+# we apply the changes outlined in the main text in slightly changed order
+
+# first, we apply the new county names and FIPS to the state of Connecticut
+
+# We check whether all state_county_fips for Connecticut are recorded using the old
+# fips.
+tmp <- data_details_fips %>% 
+  filter(state_fips == "09") %>% 
+  filter(!state_county_fips %in% unmatched_fips$state_county_fips)
+
+if (!nrow(tmp)) {
+  message("All state_county_fips are recorded following the old FIPS codes.")
+} else {
+  warning("There are state_county_fips that are recorded following the new FIPS codes!")
+}
+rm(tmp)
+
+# create a data set without Connecticut entries that follow the old FIPS codes
+data_details_fips_withoutCT <- data_details_fips %>% 
+  filter(!(state_fips == "09" & (state_county_fips %in% unmatched_fips$state_county_fips)))
+
+# create a data set containing only Connecticut entries that follow the old FIPS codes
+data_details_fips_CT <- data_details_fips %>% 
+  filter(state_fips == "09" & (state_county_fips %in% unmatched_fips$state_county_fips))
+
+# mutate county_fips and state_county_fips so that they represent the new county_fips
+# and state_county_fips. Note that this will inflate the previously data_details_fips_CT
+# because there is a one-to-many relationsipt between old and new fips.
+data_details_fips_CT <- left_join(
+    x = data_details_fips_CT,
+    y = connecticut_newPlanningRegions %>% 
+      select(old_state_county_fips, new_state_county_fips, new_county_fips),
+    by = c("state_county_fips" = "old_state_county_fips")
+  ) %>% 
+  mutate(
+    county_fips = new_county_fips,
+    state_county_fips = new_state_county_fips
+  ) %>% 
+  select(-starts_with("new_"))
+
+# check whether the datasets without and with Connecticut have the same structure before
+# joning them again.
+if (all(names(data_details_fips_withoutCT) == names(data_details_fips_CT))) {
+  message("all(names(data_details_fips_withoutCT) == names(data_details_fips_CT)) == TRUE")
+  data_details_fips <- bind_rows(
+    data_details_fips_withoutCT,
+    data_details_fips_CT
+  )
+} else {
+  warning("The names of data_details_fips_withoutCT and data_details_fips_CT do not matach!")
+}
+
+# then, we remove the US territories from the data set
+data_details_fips <- data_details_fips %>%
+  filter(!state_fips %in% (unmatched_fips_states %>%
+                             filter(is.na(abbr)) %>%
+                             pull(state_fips)))
+
+# finally, we remove the state of Alaska (FIPS = 02) from the data set, but we save
+# a data set still containing Alaska just in case...
+data_details_fips_withAK <- data_details_fips
+
+data_details_fips <- data_details_fips %>%
+  filter(state_fips != "02")
+```
+
+Finally, we rearrange some variables in `data_details_fips` and save them for later use. We also store `state_fips`, `state_county_fips` and `event_type` as factors. This becomes handy for accurately counting number of events by groups later on.
+
+```{r}
+#| label: tidyUpDataDetailsFips
+#| eval: false
+
+# rearrange order of variables in the data set
+data_details_fips <- data_details_fips %>% 
+  select(
+    begin_yearmonth,
+    episode_id, event_id,
+    state, state_county_fips,
+    event_type,
+    starts_with("damage"),
+    starts_with("injuries"),
+    starts_with("death"),
+    everything()
+  ) %>% 
+  arrange(begin_yearmonth, episode_id, event_id, state_county_fips)
+
+# store state_county_fips and event_type as factor
+data_details_fips <- data_details_fips %>% 
+  mutate(
+    state_fips = factor(state_fips, levels = sort(unique(.$state_fips))),
+    state_county_fips = factor(state_county_fips, levels = sort(unique(.$state_county_fips))),
+    event_type = factor(event_type, levels = sort(unique(.$event_type)))
+  )
+
+# save data_details_fips
+time <- format(Sys.time(), "%Y%m%d")
+fileName <- paste0(time, "_data_details_fips.RDS")
+saveRDS(data_details_fips, file = file.path("../data/stormData", fileName))
+```

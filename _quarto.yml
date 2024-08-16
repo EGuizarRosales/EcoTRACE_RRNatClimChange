@@ -1,0 +1,28 @@
+project:
+  type: website
+  output-dir: docs
+  resources: images/*
+  render:
+    - "scripts/accessStormEventsData.qmd"
+    - "scripts/analyseStormEventsData.qmd"
+    - "index.qmd"
+
+website:
+  title: "EcoTRACE RR SOM"
+  navbar:
+    left:
+      - text: Preprocessing Storm Events
+        menu:
+        - href: scripts/accessStormEventsData.qmd
+          text: Access & Tidy Data
+        - href: scripts/analyseStormEventsData.qmd
+          text: Analyse Data
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+editor: visual
+

@@ -1,0 +1,292 @@
+---
+title: "Storm Events Data: Analysis"
+author: "Emmanuel Guizar Rosales"
+date: "2024-08-16"
+date-format: "[last rendered on:] MMM D, YYYY"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    toc-expand: 1
+    number-sections: true
+    code-fold: true
+    code-summary: "Show the code"
+    embed-resources: true
+editor: visual
+execute: 
+  include: true
+  echo: true
+  message: false
+  warning: false
+  cache: true
+editor_options: 
+  chunk_output_type: console
+bibliography: references_analyseStormEventsData.bib
+---
+
+```{r}
+#| label: setup
+
+# install package librarian if needed
+if (!("librarian" %in% rownames(installed.packages()))) {
+  install.packages("librarian")
+}
+
+# load required packages
+librarian::shelf(
+  tidyverse,
+  fs,
+  usmap,
+  ggpubr
+)
+
+# Source required functions
+myFunctions <- c(
+  "FUNStormEventsData_filterData"
+)
+
+for (f in myFunctions) {
+  source(paste0("../functions/", f, ".R"))
+}
+
+# Preperations to show states boundaries
+poly_states <- plot_usmap(regions = "states")
+
+# Read in data_details_fips
+fileName <- "data_details_fips.RDS"
+pathName <- "../data/stormData"
+filePath <- dir_ls(path = pathName, regexp = paste0(fileName, "$")) %>% last()
+data_details_fips <- readRDS(filePath)
+```
+
+# Filter Data
+
+We filter the storm events data for the specific years, months, and extreme weather event types we are interested in. We filter for all years from 20214 to 2023 (as data are not complete for the year 2024 yet), we highlight the month of July, and we focus on those types of extreme weather events that are predicted to increase in frequency and severity due to climate change [@ipcc2023]: Excessive Heat, Drought, Wildfire, Flash Flood, Coastal Flood, Strong Wind, Hail, and Tornado.
+
+```{r}
+#| label: callFUNDashboard_filterData
+
+# Define variables of interest
+myYears <- seq(2014, 2023)
+myMonths <- c("July")
+myEventTypes <- c(
+  "Excessive Heat",
+  "Drought",
+  "Wildfire",
+  "Flash Flood",
+  "Coastal Flood",
+  "Strong Wind",
+  "Hail",
+  "Tornado"
+)
+
+# Call function
+out <- FUNStormEventsData_filterData(
+  myData = data_details_fips,
+  myYears = myYears,
+  myMonths = myMonths,
+  myEventTypes = myEventTypes
+)
+```
+
+# Seasonal Distribution
+
+As outlined in the Registered Report, we will assess the number of extreme weather episodes recorded in each participant's county of residence within the 30 days prior to study completion. Regarding the time window during which we plan to conduct the study, we aim for maximizing the likelihood of capturing suitable variability in the exposure to extreme weather episodes with notable geographic variability. To this end, we analyzed records of extreme weather episodes over the last ten years.
+
+
+
+```{r}
+#| label: histSeasonalDistr
+
+p.hist <- out$dataForHist %>% 
+  group_by(year) %>% 
+  mutate(
+    max_nEpisodes = max(nEpisodes),
+    yearlyMean_nEpisodes = mean(nEpisodes)
+  ) %>% 
+  ungroup() %>% 
+  mutate(max_month = ifelse(nEpisodes == max_nEpisodes, TRUE, FALSE)) %>% 
+  ggplot(aes(
+    x = month_name, y = nEpisodes,
+    linewidth = max_month,
+    fill = month_name %in% myMonths
+  )) +
+  geom_hline(
+    mapping = aes(yintercept = yearlyMean_nEpisodes),
+    linetype = "dashed",
+    color = "black"
+  ) +
+  geom_bar(
+    stat = "identity",
+    color = "black",
+    alpha = .7,
+    show.legend = FALSE
+  ) +
+  scale_linewidth_manual(values = c(0.5, 2)) +
+  scale_x_discrete(labels = month.abb) +
+  scale_fill_manual(
+    values = c("darkgrey", "orange"),
+  ) +
+  labs(
+    title = "Number of Extreme Weather Episodes by Month over the Years 2014 to 2023",
+    x = "Month",
+    y = "Number of Episodes"
+  ) +
+  theme_bw() +
+  theme(
+    text = element_text(size = 15),
+    plot.title = element_text(hjust = .5),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
+  ) +
+  facet_wrap(~year, ncol = 5)
+
+
+jpeg(
+  file = "../images/histogramSeasonalDistribution.jpeg",
+  width = 14, height = 7.5, units = "in", res = 600
+)
+print(p.hist)
+invisible(dev.off())
+```
+
+@fig-p.hist shows something.
+
+![Histograms showing the number of extreme weather episodes by month from 2014 to 2023. The dashed horizontal line indicates the mean number of extreme weather episodes in each year. The thick-bordered bar marks the month with the most extreme weather events each year. The orange bar represents July. July had the most extreme weather events in 4 out of 10 years, and in another 4 years, it was right before or after the peak month. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/histogramSeasonalDistribution.jpeg){.lightbox #fig-p.hist}
+
+# Geographical Distribution
+
+```{r}
+#| label: mapGeoDistr_bin
+
+p.map_bin <- plot_usmap(
+  data = out$dataForUsPlot,
+  values = "episodes_bin",
+  regions = "counties",
+  exclude = c("AK", "HI"),
+  color = "black",
+  linewidth = 0.1
+  ) +
+  geom_sf(
+    data = poly_states[[1]] %>% 
+      filter(!(abbr %in% c("AK", "HI"))),
+    color = "black",
+    fill = NA,
+    linewidth = .3
+  ) +
+  scale_fill_manual(
+    name = "Number of Episodes > 0",
+    values = c("white", "orange")
+  ) +
+  labs(
+    title = "Extreme Weather Episodes in July over the Years 2014 to 2023"
+  ) +
+  theme_bw() +
+  theme(
+    text = element_text(size = 15),
+    legend.position = "bottom",
+    plot.title = element_text(hjust = .5),
+    panel.grid = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text = element_blank()
+  ) +
+  facet_wrap(~year, ncol = 5)
+
+jpeg(
+  file = "../images/mapGeographicalDistribution_bin.jpeg",
+  width = 14, height = 7.5, units = "in", res = 600
+)
+print(p.map_bin)
+invisible(dev.off())
+```
+
+@fig-p.map_bin shows something else.
+
+![Maps displaying the geographical distribution of the occurrence of at least one extreme weather episode in July over the years 2014 to 2023. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/mapGeographicalDistribution_bin.jpeg){.lightbox #fig-p.map_bin}
+
+```{r}
+#| label: mapGeoDistr_cont
+
+dataForPlot <- out$dataForUsPlot %>% 
+  mutate(nEpisodes_withNA = ifelse(nEpisodes == 0, NA_integer_, nEpisodes))
+
+p.map_cont <- plot_usmap(
+  data = dataForPlot,
+  values = "nEpisodes_withNA",
+  regions = "counties",
+  exclude = c("AK", "HI"),
+  color = "black",
+  linewidth = 0.1
+  ) +
+  geom_sf(
+    data = poly_states[[1]] %>% 
+      filter(!(abbr %in% c("AK", "HI"))),
+    color = "black",
+    fill = NA,
+    linewidth = .3
+  ) +
+  scale_fill_binned(
+    name = "Number of Episodes",
+    n.breaks = 10,
+    type = "viridis",
+    na.value = "white"
+  ) +
+  labs(
+    title = "Extreme Weather Episodes in July over the Years 2014 to 2023"
+  ) +
+  theme_bw() +
+  theme(
+    text = element_text(size = 15),
+    legend.position = "bottom",
+    plot.title = element_text(hjust = .5),
+    panel.grid = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text = element_blank()
+  ) +
+  facet_wrap(~year, ncol = 5)
+
+jpeg(
+  file = "../images/mapGeographicalDistribution_cont.jpeg",
+  width = 14, height = 7.5, units = "in", res = 600
+)
+print(p.map_cont)
+invisible(dev.off())
+
+p.hist_count <- out$dataForUsPlot %>% 
+  group_by(year, nEpisodes) %>% 
+  summarise(
+    count = n(),
+    prcnt = count / n_distinct(out$dataForUsPlot$fips)
+  ) %>% 
+  ggplot(aes(x = nEpisodes, y = prcnt)) +
+  geom_bar(stat = "identity", color = "black", fill = "darkgrey") +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(
+    x = "Number of Episodes",
+    y = "Proportion of Counties"
+  ) +
+  theme_bw() +
+  labs(
+    title = "Extreme Weather Episodes in July over the Years 2014 to 2023"
+  ) +
+  theme(
+    text = element_text(size = 15),
+    legend.position = "bottom",
+    plot.title = element_text(hjust = .5)
+  ) +
+  facet_wrap(~year, ncol = 5)
+
+jpeg(
+  file = "../images/frequencyDistribution_cont.jpeg",
+  width = 14, height = 7.5, units = "in", res = 600
+)
+print(p.hist_count)
+invisible(dev.off())
+```
+
+@fig-p.hist_cont shows something else.
+
+![ Maps displaying the geographical distribution of the raw number of extreme weather episodes in July over the years 20214 to 2023. The color palette indicates numbers greater than zero, and white represent a count of zero episodes. ](../images/mapGeographicalDistribution_cont.jpeg){.lightbox #fig-p.map_cont}
+
+@fig-p.map_cont shows something else.
+
+![Histograms displaying the distribution of the raw number of extreme weather episodes in July over the years 2014 to 2023. For each number of episodes on the x-axis, the y-axis shows the proportion of counties that recorded this number of episodes.](../images/frequencyDistribution_cont.jpeg){.lightbox #fig-p.hist_cont}

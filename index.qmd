@@ -1,0 +1,10 @@
+---
+---
+
+![](images/Logo_Globe_EcoTRACE.jpg){fig-align="center" width="300"}
+
+## Welcome to the Registered Report Supplementary Material
+
+On this website, you will find all the scripts used to preprocess and visualize the data reported in the Nature Climate Change RE
+
+This site is maintained by [emmanuel.guizarrosales\@unibe.ch](mailto:emmanuel.guizarrosales@unibe.ch?subject=EcoTRACE%20Registered%20Report)
