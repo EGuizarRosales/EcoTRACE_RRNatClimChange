@@ -12,6 +12,7 @@ format:
     code-fold: true
     code-summary: "Show the code"
     embed-resources: true
+  pdf: default
 editor: visual
 execute: 
   include: true
