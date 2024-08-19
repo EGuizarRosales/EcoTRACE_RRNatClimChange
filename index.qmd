@@ -1,10 +1,11 @@
----
----
-
 ![](images/Logo_Globe_EcoTRACE.jpg){fig-align="center" width="300"}
 
-## Welcome to the Registered Report Supplementary Material
+## Registered Report Supplementary Material
 
-On this website, you will find all the scripts used to preprocess and visualize the data reported in the Nature Climate Change RE
+This website provides all the scripts used to preprocess and visualize the data reported in the Nature Climate Change Registered Report:
 
-This site is maintained by [emmanuel.guizarrosales\@unibe.ch](mailto:emmanuel.guizarrosales@unibe.ch?subject=EcoTRACE%20Registered%20Report)
+1.  **Storm Events Data: Access & Tidy Data** describes how to access the storm events database and applies and documents all the preprocessing steps applied to the data for later use in analyses.
+
+2.  **Storm Events Data: Analyse Data** documents analyses conducted to determine the optimal time window for conducting the study in order to maximize the likelihood of capturing suitable variability in exposure to extreme weather episodes.
+
+3.  **Power Analyses** provide all code to simulate data and conduct power analyses with detailed explanations for the rationale and previous empirical work underlying and informing simulations and analyses.

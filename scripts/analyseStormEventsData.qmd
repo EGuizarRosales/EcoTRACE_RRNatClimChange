@@ -38,7 +38,8 @@ librarian::shelf(
   tidyverse,
   fs,
   usmap,
-  ggpubr
+  ggpubr,
+  sessioninfo
 )
 
 # Source required functions
@@ -60,9 +61,13 @@ filePath <- dir_ls(path = pathName, regexp = paste0(fileName, "$")) %>% last()
 data_details_fips <- readRDS(filePath)
 ```
 
+# Purpose & Rationale
+
+As outlined in the Registered Report, we will assess the number of extreme weather episodes recorded in each participant's county of residence within the 30 days prior to study completion. Regarding the time window during which we plan to conduct the study, we aim for maximizing the likelihood of capturing suitable variability in the exposure to extreme weather episodes with notable geographic variability. To this end, we analyzed records of extreme weather episodes over the last ten years.
+
 # Filter Data
 
-We filter the storm events data for the specific years, months, and extreme weather event types we are interested in. We filter for all years from 20214 to 2023 (as data are not complete for the year 2024 yet), we highlight the month of July, and we focus on those types of extreme weather events that are predicted to increase in frequency and severity due to climate change [@ipcc2023]: Excessive Heat, Drought, Wildfire, Flash Flood, Coastal Flood, Strong Wind, Hail, and Tornado.
+We filter the storm events data for the specific years, months, and extreme weather event types we are interested in. We filter for all years from 2014 to 2023 (as data are not complete for the year 2024 yet), we highlight the month of July, and we focus on those types of extreme weather events that are predicted to increase in frequency and severity due to climate change [@ipcc2023]: Excessive Heat, Drought, Wildfire, Flash Flood, Coastal Flood, Strong Wind, Hail, and Tornado.
 
 ```{r}
 #| label: callFUNDashboard_filterData
@@ -90,11 +95,7 @@ out <- FUNStormEventsData_filterData(
 )
 ```
 
-# Seasonal Distribution
-
-As outlined in the Registered Report, we will assess the number of extreme weather episodes recorded in each participant's county of residence within the 30 days prior to study completion. Regarding the time window during which we plan to conduct the study, we aim for maximizing the likelihood of capturing suitable variability in the exposure to extreme weather episodes with notable geographic variability. To this end, we analyzed records of extreme weather episodes over the last ten years.
-
-
+# Analysis
 
 ```{r}
 #| label: histSeasonalDistr
@@ -150,12 +151,6 @@ print(p.hist)
 invisible(dev.off())
 ```
 
-@fig-p.hist shows something.
-
-![Histograms showing the number of extreme weather episodes by month from 2014 to 2023. The dashed horizontal line indicates the mean number of extreme weather episodes in each year. The thick-bordered bar marks the month with the most extreme weather events each year. The orange bar represents July. July had the most extreme weather events in 4 out of 10 years, and in another 4 years, it was right before or after the peak month. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/histogramSeasonalDistribution.jpeg){.lightbox #fig-p.hist}
-
-# Geographical Distribution
-
 ```{r}
 #| label: mapGeoDistr_bin
 
@@ -200,7 +195,9 @@ print(p.map_bin)
 invisible(dev.off())
 ```
 
-@fig-p.map_bin shows something else.
+Analyzing the seasonal distribution of extreme weather episodes, @fig-p.hist shows that July consistently shows a high number of extreme weather episodes over the last ten years. Additionally, @fig-p.map_bin indicates that withing the month of July, these extreme weather episodes also display a high geographical variability.
+
+![Histograms showing the number of extreme weather episodes by month from 2014 to 2023. The dashed horizontal line indicates the mean number of extreme weather episodes in each year. The thick-bordered bar marks the month with the most extreme weather events each year. The orange bar represents July. July had the most extreme weather events in 4 out of 10 years, and in another 4 years, it was right before or after the peak month. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/histogramSeasonalDistribution.jpeg){.lightbox #fig-p.hist}
 
 ![Maps displaying the geographical distribution of the occurrence of at least one extreme weather episode in July over the years 2014 to 2023. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/mapGeographicalDistribution_bin.jpeg){.lightbox #fig-p.map_bin}
 
@@ -282,12 +279,48 @@ jpeg(
 )
 print(p.hist_count)
 invisible(dev.off())
+
+# Calcualte some proportions for display in text
+props2023 <- out$dataForUsPlot %>% 
+  filter(year == 2023) %>% 
+  count(episodes_bin) %>% 
+  mutate(
+    freq = n/sum(n),
+    freq_prcnt = paste0(format(round(freq*100, 2), nsmall = 2), "%")
+  )
 ```
 
-@fig-p.hist_cont shows something else.
+While @fig-p.map_bin visualizes the occurrence of at least one extreme weather episode in July for each county and year (binary variable), @fig-p.hist_cont displays the actual number of such episodes (continuous). The vast majority of counties were exposed to few episodes, indicating that most of the variability is due to whether an extreme weather episode occurred at all or not. This is further supported by @fig-p.map_cont showing histograms for the number of extreme weather episodes in July over the past ten years. Most counties reported either zero or one extreme weather episode in July, and the ratio of counties experiencing no episodes to counties experiencing at least one episode seems to gradually approach 1:1. In July 2023, for instance, this ratio reached `r round(props2023$n[1]/props2023$n[2], 2)`, with `r props2023$freq_prcnt[1]` of counties being exposed to zero and `r props2023$freq_prcnt[2]` of counties being exposed to at least one extreme weather episode.
 
-![ Maps displaying the geographical distribution of the raw number of extreme weather episodes in July over the years 20214 to 2023. The color palette indicates numbers greater than zero, and white represent a count of zero episodes. ](../images/mapGeographicalDistribution_cont.jpeg){.lightbox #fig-p.map_cont}
-
-@fig-p.map_cont shows something else.
+![ Maps displaying the geographical distribution of the raw number of extreme weather episodes in July over the years 2014 to 2023. The color palette indicates numbers greater than zero, and white represent a count of zero episodes. ](../images/mapGeographicalDistribution_cont.jpeg){.lightbox #fig-p.map_cont}
 
 ![Histograms displaying the distribution of the raw number of extreme weather episodes in July over the years 2014 to 2023. For each number of episodes on the x-axis, the y-axis shows the proportion of counties that recorded this number of episodes.](../images/frequencyDistribution_cont.jpeg){.lightbox #fig-p.hist_cont}
+
+# Conclusion
+
+Our analyses indicate that July consistently shows a high number of extreme whether episodes with notable geographic variability (@fig-p.hist and @fig-p.map_bin). Therefore, to maximize the likelihood of capturing suitable variability in exposure to extreme weather episodes, we plan to conduct our study at the beginning of August, ensuring that the 30-day period prior to study completion falls within July. Moreover, the main source of variability in exposure to extreme weather episodes in July is due to whether at least one episode occurred or not (@fig-p.hist_cont and @fig-p.hist_cont). Thus, our main analyses will focus on whether a participant was exposed to at least one extreme weather episode in the 30 days prior to study completion, treated as a binary variable.
+
+::: {.callout-note collapse="true" appearance="simple"}
+## Expand for Session Info
+
+```{r, echo = FALSE}
+#| label: addSessionInfo
+#| echo: false
+
+# Save the session info as an object
+pkg_sesh <- session_info(pkgs = "attached")
+
+# Get the quarto version
+quarto_version <- system("quarto --version", intern = TRUE)
+
+# Inject the quarto info
+pkg_sesh$platform$quarto <- paste(
+  system("quarto --version", intern = TRUE), 
+  "@", 
+  quarto::quarto_path()
+  )
+
+# Print it out
+pkg_sesh
+```
+:::

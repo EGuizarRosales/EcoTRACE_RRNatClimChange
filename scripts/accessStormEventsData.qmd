@@ -22,7 +22,6 @@ editor_options:
   chunk_output_type: console
 params:
   currentYear: 2023
-  currentMonths: !expr month.name[1:8]
 bibliography: references_accessStormEventsData.bib
 ---
 
@@ -40,7 +39,8 @@ librarian::shelf(
   openxlsx,
   tidyverse,
   DT,
-  usmap
+  usmap,
+  sessioninfo
 )
 ```
 
@@ -753,3 +753,28 @@ time <- format(Sys.time(), "%Y%m%d")
 fileName <- paste0(time, "_data_details_fips.RDS")
 saveRDS(data_details_fips, file = file.path("../data/stormData", fileName))
 ```
+
+::: {.callout-note collapse="true" appearance="simple"}
+## Expand for Session Info
+
+```{r, echo = FALSE}
+#| label: addSessionInfo
+#| echo: false
+
+# Save the session info as an object
+pkg_sesh <- session_info(pkgs = "attached")
+
+# Get the quarto version
+quarto_version <- system("quarto --version", intern = TRUE)
+
+# Inject the quarto info
+pkg_sesh$platform$quarto <- paste(
+  system("quarto --version", intern = TRUE), 
+  "@", 
+  quarto::quarto_path()
+  )
+
+# Print it out
+pkg_sesh
+```
+:::

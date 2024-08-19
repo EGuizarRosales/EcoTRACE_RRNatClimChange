@@ -12,7 +12,7 @@ website:
   title: "EcoTRACE"
   navbar:
     left:
-      - text: Preprocessing Storm Events
+      - text: Storm Events Data
         menu:
         - href: scripts/accessStormEventsData.qmd
           text: Access & Tidy Data
@@ -20,6 +20,7 @@ website:
           text: Analyse Data
       - href: scripts/powerSimulations.qmd
         text: Power Analyses
+  page-footer: 'Site maintained by [emmanuel.guizarrosales@unibe.ch](mailto:emmanuel.guizarrosales@unibe.ch?subject=EcoTRACE%20Registered%20Report)'
 
 format:
   html:

@@ -134,10 +134,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-preprocessing-storm-events" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">Preprocessing Storm Events</span>
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-storm-events-data" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Storm Events Data</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-preprocessing-storm-events">    
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-storm-events-data">    
         <li>
     <a class="dropdown-item" href="../scripts/accessStormEventsData.html">
  <span class="dropdown-text">Access &amp; Tidy Data</span></a>
@@ -236,8 +236,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  openxlsx,</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  tidyverse,</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  DT,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  usmap</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  usmap,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  sessioninfo</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <section id="access-data" class="level1" data-number="1">
@@ -1188,6 +1189,60 @@ Table&nbsp;6: Connecticut mapping of old counties to new counties.
 <span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(data_details_fips, <span class="at">file =</span> <span class="fu">file.path</span>(<span class="st">"../data/stormData"</span>, fileName))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Expand for Session Info
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.4.0 (2024-04-24)
+ os       macOS Sonoma 14.4.1
+ system   aarch64, darwin20
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       Europe/Zurich
+ date     2024-08-19
+ pandoc   3.1.11 @ /usr/local/bin/ (via rmarkdown)
+ quarto   1.5.45 @ /usr/local/bin/quarto
+
+─ Packages ───────────────────────────────────────────────────────────────────
+ package     * version date (UTC) lib source
+ dplyr       * 1.1.4   2023-11-17 [1] CRAN (R 4.4.0)
+ DT          * 0.33    2024-04-04 [1] CRAN (R 4.4.0)
+ forcats     * 1.0.0   2023-01-29 [1] CRAN (R 4.4.0)
+ ggplot2     * 3.5.1   2024-04-23 [1] CRAN (R 4.4.0)
+ lubridate   * 1.9.3   2023-09-27 [1] CRAN (R 4.4.0)
+ openxlsx    * 4.2.5.2 2023-02-06 [1] CRAN (R 4.4.0)
+ purrr       * 1.0.2   2023-08-10 [1] CRAN (R 4.4.0)
+ readr       * 2.1.5   2024-01-10 [1] CRAN (R 4.4.0)
+ rnoaa       * 1.4.0   2024-07-15 [1] Github (ropensci/rnoaa@95868c9)
+ sessioninfo * 1.2.2   2021-12-06 [1] CRAN (R 4.4.0)
+ stringr     * 1.5.1   2023-11-14 [1] CRAN (R 4.4.0)
+ tibble      * 3.2.1   2023-03-20 [1] CRAN (R 4.4.0)
+ tidyr       * 1.3.1   2024-01-24 [1] CRAN (R 4.4.0)
+ tidyverse   * 2.0.0   2023-02-22 [1] CRAN (R 4.4.0)
+ usmap       * 0.7.1   2024-03-21 [1] CRAN (R 4.4.0)
+
+ [1] /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/library
+
+──────────────────────────────────────────────────────────────────────────────</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
 
 
 </section>
@@ -1615,6 +1670,19 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Site maintained by <a href="mailto:emmanuel.guizarrosales@unibe.ch?subject=EcoTRACE%20Registered%20Report">emmanuel.guizarrosales@unibe.ch</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
 
 
 
