@@ -15,5 +15,9 @@
   "scripts/powerSimulations.qmd": {
     "powerSimulations.html": "b5245d0f",
     "powerSimulations.tex": "c373f87a"
+  },
+  "scripts/supplementaryInformation.qmd": {
+    "supplementaryInformation.html": "58b188e9",
+    "supplementaryInformation.tex": "d1838d04"
   }
 }

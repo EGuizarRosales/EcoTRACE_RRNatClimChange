@@ -6,6 +6,7 @@ project:
     - "scripts/accessStormEventsData.qmd"
     - "scripts/analyseStormEventsData.qmd"
     - "scripts/powerSimulations.qmd"
+    - "scripts/supplementaryInformation.qmd"
     - "index.qmd"
 
 website:
@@ -20,6 +21,8 @@ website:
           text: Analyse Data
       - href: scripts/powerSimulations.qmd
         text: Power Analyses
+      - href: scripts/supplementaryInformation.qmd
+        text: Supplementary Information
   page-footer: 'Site maintained by [emmanuel.guizarrosales@unibe.ch](mailto:emmanuel.guizarrosales@unibe.ch?subject=EcoTRACE%20Registered%20Report)'
 
 format:

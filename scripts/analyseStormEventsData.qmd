@@ -12,14 +12,25 @@ format:
     code-fold: true
     code-summary: "Show the code"
     embed-resources: true
-  pdf: default
+    execute:
+      include: true
+      echo: true
+      cache: true
+      message: false
+      warning: false
+  pdf:
+    toc: true
+    toc-depth: 5
+    number-sections: true
+    fig-pos: 'h'
+    execute:
+      include: false
+      echo: false
+      cache: true
+      message: false
+      warning: false
+
 editor: visual
-execute: 
-  include: true
-  echo: true
-  message: false
-  warning: false
-  cache: true
 editor_options: 
   chunk_output_type: console
 bibliography: references_analyseStormEventsData.bib
@@ -197,9 +208,9 @@ invisible(dev.off())
 
 Analyzing the seasonal distribution of extreme weather episodes, @fig-p.hist shows that July consistently shows a high number of extreme weather episodes over the last ten years. Additionally, @fig-p.map_bin indicates that withing the month of July, these extreme weather episodes also display a high geographical variability.
 
-![Histograms showing the number of extreme weather episodes by month from 2014 to 2023. The dashed horizontal line indicates the mean number of extreme weather episodes in each year. The thick-bordered bar marks the month with the most extreme weather events each year. The orange bar represents July. July had the most extreme weather events in 4 out of 10 years, and in another 4 years, it was right before or after the peak month. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/histogramSeasonalDistribution.jpeg){.lightbox #fig-p.hist}
+![Histograms showing the number of extreme weather episodes by month from 2014 to 2023. The dashed horizontal line indicates the mean number of extreme weather episodes in each year. The thick-bordered bar marks the month with the most extreme weather events each year. The orange bar represents July. July had the most extreme weather events in 4 out of 10 years, and in another 4 years, it was right before or after the peak month. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/histogramSeasonalDistribution.jpeg){#fig-p.hist .lightbox}
 
-![Maps displaying the geographical distribution of the occurrence of at least one extreme weather episode in July over the years 2014 to 2023. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/mapGeographicalDistribution_bin.jpeg){.lightbox #fig-p.map_bin}
+![Maps displaying the geographical distribution of the occurrence of at least one extreme weather episode in July over the years 2014 to 2023. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/mapGeographicalDistribution_bin.jpeg){#fig-p.map_bin .lightbox}
 
 ```{r}
 #| label: mapGeoDistr_cont
@@ -292,13 +303,59 @@ props2023 <- out$dataForUsPlot %>%
 
 While @fig-p.map_bin visualizes the occurrence of at least one extreme weather episode in July for each county and year (binary variable), @fig-p.hist_cont displays the actual number of such episodes (continuous). The vast majority of counties were exposed to few episodes, indicating that most of the variability is due to whether an extreme weather episode occurred at all or not. This is further supported by @fig-p.map_cont showing histograms for the number of extreme weather episodes in July over the past ten years. Most counties reported either zero or one extreme weather episode in July, and the ratio of counties experiencing no episodes to counties experiencing at least one episode seems to gradually approach 1:1. In July 2023, for instance, this ratio reached `r round(props2023$n[1]/props2023$n[2], 2)`, with `r props2023$freq_prcnt[1]` of counties being exposed to zero and `r props2023$freq_prcnt[2]` of counties being exposed to at least one extreme weather episode.
 
-![ Maps displaying the geographical distribution of the raw number of extreme weather episodes in July over the years 2014 to 2023. The color palette indicates numbers greater than zero, and white represent a count of zero episodes. ](../images/mapGeographicalDistribution_cont.jpeg){.lightbox #fig-p.map_cont}
+![Maps displaying the geographical distribution of the raw number of extreme weather episodes in July over the years 2014 to 2023. The color palette indicates numbers greater than zero, and white represent a count of zero episodes.](../images/mapGeographicalDistribution_cont.jpeg){#fig-p.map_cont .lightbox}
 
-![Histograms displaying the distribution of the raw number of extreme weather episodes in July over the years 2014 to 2023. For each number of episodes on the x-axis, the y-axis shows the proportion of counties that recorded this number of episodes.](../images/frequencyDistribution_cont.jpeg){.lightbox #fig-p.hist_cont}
+![Histograms displaying the distribution of the raw number of extreme weather episodes in July over the years 2014 to 2023. For each number of episodes on the x-axis, the y-axis shows the proportion of counties that recorded this number of episodes.](../images/frequencyDistribution_cont.jpeg){#fig-p.hist_cont .lightbox}
+
+Finally, as reported in the analysis plan and the design table, we plan to run a set of additional analyses regarding hypotheses H~2~ and H~3~, in which we will test the sensitivity of results to the time period prior to study completion used to assess extreme weather exposure. Regarding H~2~, we will estimate the two-way interaction effect of political affiliation and extreme weather exposure on ΔDuration for different time periods from 30 days to 360 days in increments of 30 days. Similarly for H~3~, we will estimate the three-way interaction effect of political affiliation, extreme weather exposure, and attribution of extreme weather events to climate change on ΔDuration for the same time periods. We will visualize results of these additional analyses by plotting the two-way (or three-way) interaction regression coefficients as points surrounded by their 95%-CI on the y-axis and the 12 time periods on the x-axis, as displayed in @fig-p.sensitivity with simulated data. Based on previous research [@konisky2016], we expect that the estimated effects will decay as the number of days prior to study completion used to assess the occurrence of extreme weather episodes increases.
+
+```{r}
+#| label: sensitivityAnalysesPlot
+
+set.seed(123)
+p.sensitivity <- tibble(
+  Days = seq(30, 360, 30),
+  Coefficient = accumulate(1:11, ~ .x * .7, .init = 0.1143),
+  Error = rnorm(12, .07, 0.005),
+  CI_high = Coefficient + .5 * Error,
+  CI_low = Coefficient - .5 * Error
+) %>% 
+  ggplot(aes(x = Days, y = Coefficient, color = CI_low < 0)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_errorbar(aes(ymin = CI_low, ymax = CI_high), width = 3) +
+  geom_point(
+    shape = "circle filled",
+    fill = "white",
+    size = 3,
+    stroke = 1
+  ) +
+  scale_color_manual(values = c("black", "grey")) +
+  scale_x_continuous(breaks = seq(30, 360, 30)) +
+  labs(
+    x = "Days used to assess occurence of extreme weather episodes",
+    y = "Regression coefficient\n(surrounded by 95%-CI)"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "None"
+  )
+set.seed(NULL)
+
+jpeg(
+  file = "../images/sensitivityAnalyses_simulation.jpeg",
+  width = 7, height = 5, units = "in", res = 600
+)
+print(p.sensitivity)
+invisible(dev.off())
+```
+
+![Simulated regression coefficients of interaction effects for different number of days prior to study completion used to assess the occurrence of extreme weather episodes. Point estimates are surrounded by their 95% confidence intervals. The dashed line represents the absence of an interaction effect (regression coefficient of zero). Significance of regression coefficients is color-coded, with black indicating regression coefficients significantly different from zero, and grey indicating no significant difference from zero.](../images/sensitivityAnalyses_simulation.jpeg){#fig-p.sensitivity .lightbox}
 
 # Conclusion
 
-Our analyses indicate that July consistently shows a high number of extreme whether episodes with notable geographic variability (@fig-p.hist and @fig-p.map_bin). Therefore, to maximize the likelihood of capturing suitable variability in exposure to extreme weather episodes, we plan to conduct our study at the beginning of August, ensuring that the 30-day period prior to study completion falls within July. Moreover, the main source of variability in exposure to extreme weather episodes in July is due to whether at least one episode occurred or not (@fig-p.hist_cont and @fig-p.hist_cont). Thus, our main analyses will focus on whether a participant was exposed to at least one extreme weather episode in the 30 days prior to study completion, treated as a binary variable.
+Our analyses indicate that July consistently shows a high number of extreme whether episodes with notable geographic variability (@fig-p.hist and @fig-p.map_bin). Therefore, to maximize the likelihood of capturing suitable variability in exposure to extreme weather episodes, we plan to conduct our study at the beginning of August, ensuring that the 30-day period prior to study completion falls within July. Moreover, the main source of variability in exposure to extreme weather episodes in July is due to whether at least one episode occurred or not (@fig-p.hist_cont and @fig-p.hist_cont). Thus, our main analyses will focus on whether a participant was exposed to at least one extreme weather episode in the 30 days prior to study completion, treated as a binary variable. In additional analyses, we will test the sensitivity of our results to different time periods used to assess extreme weather exposure prior to study completion.
+
 
 ::: {.callout-note collapse="true" appearance="simple"}
 ## Expand for Session Info
@@ -324,3 +381,8 @@ pkg_sesh$platform$quarto <- paste(
 pkg_sesh
 ```
 :::
+
+```{r include=knitr::is_latex_output(), results='asis'}
+cat("# References")
+```
+
