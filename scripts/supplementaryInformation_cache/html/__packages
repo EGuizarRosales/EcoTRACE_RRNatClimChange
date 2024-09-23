@@ -22,3 +22,5 @@ ggeffects
 binom
 tictoc
 ggthemes
+knitr
+kableExtra

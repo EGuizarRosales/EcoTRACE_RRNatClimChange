@@ -195,7 +195,7 @@ $$
 
 As argued in the Registered Report, we hypothesize:
 
-**(H~1~)** *Compared to Republicans, Democrats prioritize searching for and attending to carbon over bonus information during decision-making in the CET. That is, Democrats display higher ΔDuration values compared to Republicans.*
+**(H~1~)** *Compared to Republicans, Democrats prioritize searching for and attending to carbon over bonus information during decision-making in the Carbon Emission Task (CET). That is, Democrats display higher ΔDuration values compared to Republicans.*
 
 ```{r}
 #| label: trueEffects_mainEffect
@@ -659,7 +659,7 @@ print(powC.mainEffect)
 
 As argued in the Registered Report, we hypothesize:
 
-**(H~2~)**: *The effect of political affiliation on ΔDuration is greater among individuals with prior exposure to extreme weather events compared to individuals without such exposure. That is, extreme weather exposure positively interacts with political affiliation in predicting ΔDuration.*
+**(H~2~)**: *Exposure to extreme weather events amplifies the polarization in attentional information search processes, increasing the difference in ΔDuration between Republicans and Democrats among individuals with (vs. without) such exposure. In other words, there is a positive two-way interaction effect of extreme weather exposure and political affiliation on ΔDuration.*
 
 ```{r}
 #| label: trueEffects_2wayInt
@@ -1217,7 +1217,7 @@ To assess the smallest effect size that can be detected with 95% statistical pow
 
 As argued in the Registered Report, we hypothesize:
 
-**(H~3~)**: *The moderating role of extreme weather exposure is greater among individuals who more strongly attribute extreme weather events to climate change. In other words, there is a positive three-way interaction between political affiliation, exposure to extreme weather events, and their attribution to climate change.*
+**(H~3~)**: *The two-way interaction effect of extreme weather exposure and political affiliation is greater for individuals who more strongly attribute extreme weather events to climate change. In other words, there is a positive three-way interaction effect of political affiliation, exposure to extreme weather events, and their attribution to climate change on ΔDuration.*
 
 ```{r}
 #| label: trueEffects_3wayInt

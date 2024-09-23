@@ -1,6 +1,11 @@
 ---
 title: "Supplementary Information"
-author: "Emmanuel Guizar Rosales"
+author:
+  - Emmanuel Guizar Rosales
+  - Annika M. Wyss
+  - Michael Schulte-Mecklenbeck
+  - Ulf J.J. Hahnel
+  - Daria Knoch
 date: today
 date-format: "[last rendered on:] MMM D, YYYY"
 format:
@@ -59,7 +64,9 @@ librarian::shelf(
   binom,
   tictoc,
   ggthemes,
-  sessioninfo
+  sessioninfo,
+  knitr,
+  kableExtra
 )
 
 # Source required functions
@@ -80,6 +87,50 @@ pathName <- "../data/stormData"
 filePath <- dir_ls(path = pathName, regexp = paste0(fileName, "$")) %>% last()
 data_details_fips <- readRDS(filePath)
 ```
+
+# Carbon Emission Task: Trials
+
+@tbl-CETTrials shows all trials in the new variant of the Carbon Emission Task (CET). Each row corresponds to one trial. *Carbon Diff.* and *Bonus Diff.* index the unique combinations of relative differences in carbon and bonus consequences in a trial. *Carbon Level Rand.* and *Bonus Level Rand.* correspond to the random carbon and bonus level used in the construction of a trial. The average carbon level over all trials is 19.85 lbs CO2, to which we add a random deviation with mean = 0 and SD = 0.9925 lbs CO~2~. The average bonus level over all trials is 60 cents, to which we add a random deviation with mean = 0 and SD = 3 cents USD. *Carbon Option Pro-Self* and *Bonus Option Pro-Self* represent the actual information available to participants related to the option that will lead to the greater bonus payment for participants. *Carbon Option Pro-Climate* and *Bonus Option Pro-Self* represent the same information but for the option leading to the greater benefit for the climate (lower carbon emissions).
+
+{{< pagebreak >}}
+
+```{r}
+#| label: tbl-CETTrials
+#| tbl-cap: Trials in the new variant of the CET
+#| include: true
+
+# Read in the trials data
+CETTrials <- read_csv("../data/CET_trials.csv")
+
+# Select columns to display and round to two digits
+CETTrials <- CETTrials %>% 
+  select(
+    carbon_prcnt, bonus_prcnt,
+    carbon_level_rand, bonus_level_rand,
+    carbon_self, carbon_env,
+    bonus_self, bonus_env
+  ) %>% 
+  mutate(across(-ends_with("_prcnt"), ~ round(.x, 2)))
+
+# Define column names
+CETTrials_colnames <- c(
+  "Carbon Diff (%)",
+  "Bonus Diff (%)",
+  "Carbon Level Rand (lbs.CO2)",
+  "Bonus Level Rand (cent USD)",
+  "Carbon Option Pro-Self (lbs.CO2)",
+  "Carbon Option Pro-Climate (lbs.CO2)",
+  "Bonus Option Pro-Self (cent USD)",
+  "Bonus Option Pro-Climate (cent USD)"
+)
+
+# Dispaly table with custom width for certain columns
+kable(CETTrials, col.names = CETTrials_colnames) %>% 
+  column_spec(column = 1:2, width = "1cm") %>% 
+  column_spec(column = 3:8, width = "2cm")
+```
+
+{{< pagebreak >}}
 
 # Extreme Weather Data
 
@@ -503,7 +554,7 @@ $$
 
 As argued in the Registered Report, we hypothesize:
 
-**(H~1~)** *Compared to Republicans, Democrats prioritize searching for and attending to carbon over bonus information during decision-making in the CET. That is, Democrats display higher ΔDuration values compared to Republicans.*
+**(H~1~)** *Compared to Republicans, Democrats prioritize searching for and attending to carbon over bonus information during decision-making in the Carbon Emission Task. That is, Democrats display higher ΔDuration values compared to Republicans.*
 
 ```{r}
 #| label: trueEffects_mainEffect
@@ -975,7 +1026,7 @@ invisible(dev.off())
 
 As argued in the Registered Report, we hypothesize:
 
-**(H~2~)**: *The effect of political affiliation on ΔDuration is greater among individuals with prior exposure to extreme weather events compared to individuals without such exposure. That is, extreme weather exposure positively interacts with political affiliation in predicting ΔDuration.*
+**(H~2~)**: *Exposure to extreme weather events amplifies the polarization in attentional information search processes, increasing the difference in ΔDuration between Republicans and Democrats among individuals with (vs. without) such exposure. In other words, there is a positive two-way interaction effect of extreme weather exposure and political affiliation on ΔDuration.*
 
 ```{r}
 #| label: trueEffects_2wayInt
@@ -1541,7 +1592,7 @@ To assess the smallest effect size that can be detected with 95% statistical pow
 
 As argued in the Registered Report, we hypothesize:
 
-**(H~3~)**: *The moderating role of extreme weather exposure is greater among individuals who more strongly attribute extreme weather events to climate change. In other words, there is a positive three-way interaction between political affiliation, exposure to extreme weather events, and their attribution to climate change.*
+**(H~3~)**: *The two-way interaction effect of extreme weather exposure and political affiliation is greater for individuals who more strongly attribute extreme weather events to climate change. In other words, there is a positive three-way interaction effect of political affiliation, exposure to extreme weather events, and their attribution to climate change on ΔDuration.*
 
 ```{r}
 #| label: trueEffects_3wayInt
@@ -2195,13 +2246,13 @@ To assess the smallest effect size that can be detected with 95% statistical pow
 
 Using power simulations with mixed-effects models for sample-size determination and effect-size sensitivity analyses, we show that with a final sample size of N = 950:
 
-1.  We will achieve > 95% statistical power to detect a main effect of political affiliation.
+1.  We will achieve $\ge$ 95% statistical power to detect a main effect of political affiliation.
 
 2.  We will be able to detect a two-way interaction effect of political affiliation with extreme weather exposure of at least `r eff_sigmaCons_txt` with $\ge$ 95% statistical power.
 
 3.  We will be able to detect a three-way interaction effect of political affiliation with extreme weather exposure and subjective attribution of extreme weather events to climate change of at least `r eff_sigmaCons_txt_3way` with $\ge$ 95% statistical power.
 
-:::{.content-hidden when-format="pdf"}
+::: {.content-hidden when-format="pdf"}
 ::: {.callout-note collapse="true" appearance="simple"}
 ## Expand for Session Info
 
@@ -2229,5 +2280,5 @@ pkg_sesh
 :::
 
 ::: {.content-visible when-format="pdf"}
-# References
+# References {.unlisted}
 :::
