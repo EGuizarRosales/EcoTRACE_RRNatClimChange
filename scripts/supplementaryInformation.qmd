@@ -964,7 +964,32 @@ invisible(dev.off())
 
 ![Distribution of estimated fixed effects resulting from `r label_nSimulations` simulations for the model `r formulaUsedForFit`. Shaded area represent densities, annotated points indicate medians, and thick and thin lines represent 66% and 95% quantiles.](../images/pa_checkSimsMainEffect.jpeg){#fig-checkSims-mainEffect}
 
+
 @fig-powC-mainEffect shows results of our sample-size determination analyses. We find that a sample size of `r chosenN` provides a statistical power of `r min(powerValues)` (lower bound of 95%-CI) even under the most conservative assumptions (SESOI = `r chosenSESOI[1]`, Error SD = `r chosenSigma[2]`).
+
+```{r}
+#| label: interpolatePower_mainEffect
+
+# Get power values of interest
+chosenN <- c(800, 1000)
+chosenSigma <- c("0.3300", "0.6600")
+chosenSESOI <- c("0.1000")
+powerValues <- resList_mainEffect.summary %>% 
+  filter(sigma_fact %in% chosenSigma) %>% 
+  filter(sesoi_fact %in% chosenSESOI) %>% 
+  filter(nSubjects %in% chosenN)
+
+# Get lower CI for power values for conservative sigma assumptions
+powerValues_sigmaCons <- powerValues %>% 
+  filter(sigma_fact == "0.6600")
+
+# Interpolate the effect sizes at which we achieve 99% power
+eff_sigmaCons <- approx(powerValues_sigmaCons$ci.lower, powerValues_sigmaCons$nSubjects, xout = 0.99)$y
+# Round results for display in text
+eff_sigmaCons_txt <- toString(round(eff_sigmaCons))
+```
+
+Moreover, we inspect the lower bounds of the 95%-CI power estimates in @fig-powC-mainEffect. Specifically, we focus on the power simulation results for a conservative SESOI of `r chosenSESOI` and an error SD of `r chosenSigma[2]`. Then, we use interpolation between sample sizes of `r chosenN[1]` and `r chosenN[2]` to estimate the number of participants needed to achieve 99% statistical power (lower bounds of 95%-CI power estimates). Results reveal that with a sample size of N = `r eff_sigmaCons_txt`, we would achieve 99%  statistical power (lower bound of 95%-CI power estimate) to detect a true effect of at least `r chosenSESOI`.
 
 We optimize the study design to detect a true SESOI for political affiliation. However, we are also interested in two-way and three-way interaction effects, which are known to require greater sample sizes to achieve the same statistical power as for main effects. Moreover, greater sample sizes are more likely to accurately represent target populations with respect to variables like exposure to extreme weather events and subjective attribution of extreme weather events to climate change. Therefore, we opt for a sample size of N = 1000 for further effect-size sensitivity analyses regarding interaction effects.
 
