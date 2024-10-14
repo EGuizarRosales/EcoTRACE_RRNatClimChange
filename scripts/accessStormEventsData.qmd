@@ -1,5 +1,5 @@
 ---
-title: "Storm Events Data: Access & Tidying"
+title: "Extreme Weather Events Data: Access & Preprocessing"
 author: "Emmanuel Guizar Rosales"
 date: "2024-08-16"
 date-format: "[last rendered on:] MMM D, YYYY"

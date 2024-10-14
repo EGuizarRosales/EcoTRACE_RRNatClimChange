@@ -13,12 +13,12 @@ website:
   title: "EcoTRACE"
   navbar:
     left:
-      - text: Storm Events Data
+      - text: Extreme Weather Events Data
         menu:
         - href: scripts/accessStormEventsData.qmd
-          text: Access & Tidy Data
+          text: Access & Preprocessing
         - href: scripts/analyseStormEventsData.qmd
-          text: Analyse Data
+          text: Analysis
       - href: scripts/powerSimulations.qmd
         text: Power Analyses
       - href: scripts/supplementaryInformation.qmd
