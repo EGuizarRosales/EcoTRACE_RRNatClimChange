@@ -323,7 +323,7 @@ invisible(dev.off())
 ```{r}
 #| label: calculateAdditionalStats
 
-meanNEpisodesJuly <- data_details_fips %>% 
+additionalStats <- data_details_fips %>% 
   filter(year %in% myYears) %>% 
   filter(month_name %in% myMonths) %>% 
   filter(event_type %in% myEventTypes) %>% 
@@ -333,12 +333,22 @@ meanNEpisodesJuly <- data_details_fips %>%
     nEpisodes = n(), 
     .groups = 'drop'
   ) %>% 
-  pull(nEpisodes) %>% 
-  mean() %>% 
+  summarise(
+    meanNEpisodes = round(mean(nEpisodes), 2),
+    sdNEpisodes = round(sd(nEpisodes), 2)
+  )
+
+meanNEpisodesJuly <- 
+  additionalStats %>% 
+  pull(meanNEpisodes) %>% 
+  scales::comma()
+sdNEpisodesJuly <- 
+  additionalStats %>% 
+  pull(sdNEpisodes) %>% 
   scales::comma()
 ```
 
-Our analysis spanning the last ten years evidenced high numbers of occurrences of extreme weather episodes in every single year (@fig-p.hist) as well as considerable geographical variability (@fig-p.map_bin). Analyzing the seasonal distribution of extreme weather episodes, @fig-p.hist shows that July consistently shows a high number of extreme weather episodes over the last ten years, with an average occurrence of `r meanNEpisodesJuly` episodes in each year. @tbl-julyMeanNumberOfEventsByEventType shows the average number of extreme weather events by event type in July over the last ten years, demonstrating that July typically witnesses a multitude of different extreme weather event types. Additionally, @fig-p.map_bin indicates that within the month of July, these extreme weather episodes also display a high geographical variability.
+Our analysis spanning the last ten years evidenced high numbers of occurrences of extreme weather episodes in every single year (@fig-p.hist) as well as considerable geographical variability (@fig-p.map_bin). Analyzing the seasonal distribution of extreme weather episodes, @fig-p.hist shows that July consistently shows a high number of extreme weather episodes over the last ten years, with an average occurrence of `r meanNEpisodesJuly` episodes in each year (SD = `r sdNEpisodesJuly`). Note that numbers represent counts of distinct episode-county combinations to represent how many counties were affected. @tbl-julyMeanNumberOfEventsByEventType shows the average number of extreme weather events by event type in July over the last ten years, demonstrating that July typically witnesses a multitude of different extreme weather event types. Additionally, @fig-p.map_bin indicates that within the month of July, these extreme weather episodes also display a high geographical variability.
 
 ![Histograms showing the number of extreme weather episodes by month from 2014 to 2023. The dashed horizontal line indicates the mean number of extreme weather episodes in each year. The thick-bordered bar marks the month with the most extreme weather events each year. The orange bar represents July. July had the most extreme weather events in 4 out of 10 years, and in another 4 years, it was right before or after the peak month. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/histogramSeasonalDistribution.jpeg){#fig-p.hist .lightbox}
 
@@ -360,14 +370,13 @@ data_details_fips %>%
   ) %>% 
   group_by(event_type) %>% 
   summarise(
-    meanNEvents = round(mean(nEvents), 1),
+    meanNEvents = format(round(mean(nEvents), 2), nsmall = 2),
+    sdNEvents = format(round(sd(nEvents, 2)), nsmall = 2),
     .groups = 'drop'
   ) %>% 
-  rename(
-    `Event Type` = event_type,
-    `Mean Number of Events` = meanNEvents
-  ) %>% 
-  knitr::kable()
+  knitr::kable(col.names = c(
+    "Event Type", "Mean Number of Events", "SD"
+  ), align = c("l", "r", "r"))
 ```
 
 ![Maps displaying the geographical distribution of the occurrence of at least one extreme weather episode in July over the years 2014 to 2023. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/mapGeographicalDistribution_bin.jpeg){#fig-p.map_bin .lightbox}
