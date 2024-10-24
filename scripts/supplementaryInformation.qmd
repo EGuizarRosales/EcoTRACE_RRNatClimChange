@@ -268,9 +268,107 @@ print(p.map_bin)
 invisible(dev.off())
 ```
 
-Analyzing the seasonal distribution of extreme weather episodes, @fig-p.hist shows that July consistently shows a high number of extreme weather episodes over the last ten years. Additionally, @fig-p.map_bin indicates that withing the month of July, these extreme weather episodes also display a high geographical variability.
+```{r}
+#| label: histJulyEventTypes
+
+p.histJulyEventTypes <- data_details_fips %>% 
+  mutate(fips = state_county_fips) %>% 
+  filter(year %in% myYears) %>% 
+  filter(month_name %in% myMonths) %>% 
+  filter(event_type %in% myEventTypes) %>% 
+  distinct(event_id, fips, .keep_all = TRUE) %>% 
+  group_by(year, event_type) %>% 
+  summarise(
+    nEvents = n(),
+    .groups = 'drop'
+  ) %>% 
+  ggplot(aes(y = event_type, x = nEvents)) +
+  geom_bar(
+    stat = 'identity',
+    color = "black",
+    fill = "darkgrey",
+    alpha = .7,
+  ) +
+  geom_text(
+    aes(label = scales::comma(nEvents)),
+    hjust = -0.1,
+    vjust = 0.5,
+    size = 2.5
+  ) +
+  scale_x_continuous(
+    labels = scales::comma_format(), 
+    breaks = seq(0, 2.5e3, 1e3)
+  ) +
+  coord_cartesian(xlim = c(0, 2.5e3)) +
+  labs(
+    title = "Number of Extreme Weather Events in July by Event Type over the Years 2014 to 2023",
+    x = "Number of Events",
+    y = "Event Type"
+  ) +
+  theme_bw() +
+  theme(
+    text = element_text(size = 15),
+    plot.title = element_text(hjust = .5)
+  ) +
+  facet_wrap(~year, ncol = 5)
+
+jpeg(
+  file = "../images/histogramJulyEventTypes.jpeg",
+  width = 14, height = 7.5, units = "in", res = 600
+)
+print(p.histJulyEventTypes)
+invisible(dev.off())
+```
+
+```{r}
+#| label: calculateAdditionalStats
+
+meanNEpisodesJuly <- data_details_fips %>% 
+  filter(year %in% myYears) %>% 
+  filter(month_name %in% myMonths) %>% 
+  filter(event_type %in% myEventTypes) %>% 
+  distinct(episode_id, state_county_fips, .keep_all = TRUE) %>% 
+  group_by(year) %>% 
+  summarise(
+    nEpisodes = n(), 
+    .groups = 'drop'
+  ) %>% 
+  pull(nEpisodes) %>% 
+  mean() %>% 
+  scales::comma()
+```
+
+Our analysis spanning the last ten years evidenced high numbers of occurrences of extreme weather episodes in every single year (@fig-p.hist) as well as considerable geographical variability (@fig-p.map_bin). Analyzing the seasonal distribution of extreme weather episodes, @fig-p.hist shows that July consistently shows a high number of extreme weather episodes over the last ten years, with an average occurrence of `r meanNEpisodesJuly` episodes in each year. @tbl-julyMeanNumberOfEventsByEventType shows the average number of extreme weather events by event type in July over the last ten years, demonstrating that July typically witnesses a multitude of different extreme weather event types. Additionally, @fig-p.map_bin indicates that within the month of July, these extreme weather episodes also display a high geographical variability.
 
 ![Histograms showing the number of extreme weather episodes by month from 2014 to 2023. The dashed horizontal line indicates the mean number of extreme weather episodes in each year. The thick-bordered bar marks the month with the most extreme weather events each year. The orange bar represents July. July had the most extreme weather events in 4 out of 10 years, and in another 4 years, it was right before or after the peak month. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/histogramSeasonalDistribution.jpeg){#fig-p.hist .lightbox}
+
+```{r}
+#| label: tbl-julyMeanNumberOfEventsByEventType
+#| tbl-cap: Mean Number of Extreme Weather Events in July over the Years 2014 to 2023 by Event Type.
+#| include: true
+
+data_details_fips %>% 
+  mutate(fips = state_county_fips) %>% 
+  filter(year %in% myYears) %>% 
+  filter(month_name %in% myMonths) %>% 
+  filter(event_type %in% myEventTypes) %>% 
+  distinct(event_id, fips, .keep_all = TRUE) %>% 
+  group_by(year, event_type) %>% 
+  summarise(
+    nEvents = n(),
+    .groups = 'drop'
+  ) %>% 
+  group_by(event_type) %>% 
+  summarise(
+    meanNEvents = round(mean(nEvents), 1),
+    .groups = 'drop'
+  ) %>% 
+  rename(
+    `Event Type` = event_type,
+    `Mean Number of Events` = meanNEvents
+  ) %>% 
+  knitr::kable()
+```
 
 ![Maps displaying the geographical distribution of the occurrence of at least one extreme weather episode in July over the years 2014 to 2023. Only episodes that included at least one of the following event types were considered: excessive heat, drought, wildfire, flash flood, coastal flood, strong wind, hail, tornado.](../images/mapGeographicalDistribution_bin.jpeg){#fig-p.map_bin .lightbox}
 
