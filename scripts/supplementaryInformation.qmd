@@ -1690,7 +1690,7 @@ print(powC.2wayInt)
 invisible(dev.off())
 ```
 
-![Power curves for the two-way interaction polAff × ewe. Points represent simulated power surrounded by a 95%-CI based on 1000 simulations with α = 0.05. Note that, in contrast to @fig-powC-mainEffect, the x-axsis represents different effect sizes, starting from the defined SESOI, while the panels represent different sample sizes, taking into account participant exclusion-rates of 10% (N = 900), 5% (N = 950), and 0% (N = 1000). Note that estimates are displayed with a slight shift along the x-axis to reduce overlap.](../images/pa_powC2wayInt.jpeg){#fig-powC-twoWayInt .lightbox}
+![Power curves for the two-way interaction polAff × ewe. Points represent simulated power surrounded by a 95%-CI based on 1000 simulations with α = 0.05. Note that, in contrast to @fig-powC-mainEffect, the x-axsis represents different effect sizes, starting from the defined SESOI, while the panels represent different sample sizes, taking into account participant exclusion-rates of 10% (N = 900), 5% (N = 950), and 0% (N = 1000). Note that estimates are displayed with a slight shift along the x-axis to reduce overlap. Since we only consider effect sizes equal to or greater than the SESOI to be of relevance, power curves were only examined for positive effect sizes, which is why only positive values are shown. ](../images/pa_powC2wayInt.jpeg){#fig-powC-twoWayInt .lightbox}
 
 ```{r}
 #| label: interpolatePower_twoWayInt
@@ -1929,7 +1929,7 @@ print(powC.2wayInt)
 invisible(dev.off())
 ```
 
-![Power curves for the two-way interaction polAff × ewe. Points represent simulated power surrounded by a 95%-CI based on 1000 simulations with α = 0.05. Note that, in contrast to @fig-powC-mainEffect, the x-axsis represents different effect sizes, starting from the defined SESOI, while the panels represent different sample sizes. Note that estimates are displayed with a slight shift along the x-axis to reduce overlap.](../images/pa_powC2wayInt_increasedN.jpeg){#fig-powC-twoWayInt-increasedN .lightbox}
+![Power curves for the two-way interaction polAff × ewe. Points represent simulated power surrounded by a 95%-CI based on 1000 simulations with α = 0.05. Note that, in contrast to @fig-powC-mainEffect, the x-axsis represents different effect sizes, starting from the defined SESOI, while the panels represent different sample sizes. Note that estimates are displayed with a slight shift along the x-axis to reduce overlap. Since we only consider effect sizes equal to or greater than the SESOI to be of relevance, power curves were only examined for positive effect sizes, which is why only positive values are shown.](../images/pa_powC2wayInt_increasedN.jpeg){#fig-powC-twoWayInt-increasedN .lightbox}
 
 ## Three-Way Interaction Effect
 
@@ -2555,7 +2555,7 @@ print(powC.3wayInt.cont)
 invisible(dev.off())
 ```
 
-![Power curves for the three-way interaction polAff × ewe × subjAttr. Points represent simulated power surrounded by a 95%-CI based on 1000 simulations with α = 0.05. Note that, in contrast to @fig-powC-mainEffect, the x-axsis represents different effect sizes, starting from the defined SESOI, while the panels represent different sample sizes, taking into account participant exclusion-rates of 10% (N = 900), 5% (N = 950), and 0% (N = 1000). Note that estimates are displayed with a slight shift along the x-axis to reduce overlap.](../images/pa_powC3wayInt.jpeg){#fig-powC-threeWayInt .lightbox}
+![Power curves for the three-way interaction polAff × ewe × subjAttr. Points represent simulated power surrounded by a 95%-CI based on 1000 simulations with α = 0.05. Note that, in contrast to @fig-powC-mainEffect, the x-axsis represents different effect sizes, starting from the defined SESOI, while the panels represent different sample sizes, taking into account participant exclusion-rates of 10% (N = 900), 5% (N = 950), and 0% (N = 1000). Note that estimates are displayed with a slight shift along the x-axis to reduce overlap. Since we only consider effect sizes equal to or greater than the SESOI to be of relevance, power curves were only examined for positive effect sizes, which is why only positive values are shown.](../images/pa_powC3wayInt.jpeg){#fig-powC-threeWayInt .lightbox}
 
 ```{r}
 #| label: interpolatePower_threeWayInt
@@ -2790,7 +2790,7 @@ print(powC.3wayInt.cont)
 invisible(dev.off())
 ```
 
-![Power curves for the three-way interaction polAff × ewe × subjAttr. Points represent simulated power surrounded by a 95%-CI based on 1000 simulations with α = 0.05. Note that, in contrast to @fig-powC-mainEffect, the x-axsis represents different effect sizes, starting from the defined SESOI, while the panels represent different sample sizes. Note that estimates are displayed with a slight shift along the x-axis to reduce overlap.](../images/pa_powC3wayInt_increasedN.jpeg){#fig-powC-threeWayInt-increasedN .lightbox}
+![Power curves for the three-way interaction polAff × ewe × subjAttr. Points represent simulated power surrounded by a 95%-CI based on 1000 simulations with α = 0.05. Note that, in contrast to @fig-powC-mainEffect, the x-axsis represents different effect sizes, starting from the defined SESOI, while the panels represent different sample sizes. Note that estimates are displayed with a slight shift along the x-axis to reduce overlap. Since we only consider effect sizes equal to or greater than the SESOI to be of relevance, power curves were only examined for positive effect sizes, which is why only positive values are shown.](../images/pa_powC3wayInt_increasedN.jpeg){#fig-powC-threeWayInt-increasedN .lightbox}
 
 ## Conclusion
 
