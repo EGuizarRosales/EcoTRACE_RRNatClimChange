@@ -2893,63 +2893,6 @@ pkg_sesh
 
 {{< pagebreak >}}
 
-# Qualtrics Survey Structure & Questions
-```{r}
-library(tidyverse)
-library(kableExtra)
-
-# Create the Qualtrics Survey Structure data frame
-QualtricsSurvey <- tibble(
-  Block_Name = c(
-    "detectMobile", "Captcha", "InformationConsent", "Welcome", "AttentionChecks",
-    "handleIDs", "Experiment", "QuestionsExperiment", "extremeWeatherExperiences",
-    "politicalOrientation", "Demographics", "FIPS", "Thanks"
-  ),
-  Exact_Questions = c(
-    "It seems like you are using a [device]. Please switch to a desktop/laptop.",
-    "Please complete the captcha below.",
-    "Welcome to this study on decision-making! Do you consent to participate?",
-    "Dear Participant, To conduct the experiment calmly, please close other programs.",
-    "What is your year of birth? / What does the current study investigate? / Choose 'Somewhat disagree'",
-    "Thank you for answering the questions.",
-    "You can go to the experiment now by clicking the button below.",
-    "What kind of device did you use? / Did you experience technical problems? / Do you agree that carbon certificates reduce emissions?",
-    "If any, which of the following extreme weather events did you experience in the past days? To access definitions of the different event types, click Info. / How often? / How much did they affect you? / Please indicate how many times you experienced each event type in the past days.",
-    "Do you think of yourself as a Democrat, Republican, or Independent?",
-    "What is your sex? / What is your highest level of education? / What was your total family income?",
-    "Please provide your State, County, and 5-digit FIPS code.",
-    "Do you have any suggestions or comments on the study?"
-  ),
-  Answer_Options = c(
-    "- No action\n- Switch to desktop/laptop\n- Adjust screen resolution",
-    "- Captcha input field",
-    "- I have read and understood and would like to participate\n- I do not wish to participate",
-    "- No response needed; instructions only",
-    "- Free-text entry for year of birth\n- Multiple-choice question on study topic\n- Multiple-choice on instructed response",
-    "- No response needed; system logs timing data",
-    "- Button to start experiment\n- Password input field\n- Button to restart experiment",
-    "- Laptop's internal screen\n- External monitor\n- Tablet\n- Mobile phone\n- Other (specify)",
-    "- Checklist of extreme weather events\n- Numeric input for frequency\n- Likert scale for impact",
-    "- Strong Democrat\n- Not very strong Democrat\n- Independent, close to Democrat\n- Independent\n- Independent, close to Republican\n- Not very strong Republican\n- Strong Republican",
-    "- Male\n- Female\n- Other (specify)\n- Did not complete high school\n- High school diploma\n- Some college\n- Associate’s degree\n- Bachelor’s degree\n- Master’s degree or higher",
-    "- Free-text entry for FIPS code, State, and County",
-    "- Free-text entry for feedback"
-  )
-)
-
-# Display the table with custom formatting
-QualtricsSurvey %>%
-  kable(col.names = c("Block Name", "Exact Questions", "Answer Options"), align = "l", escape = FALSE) %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover")) %>%
-  column_spec(1, width = "3cm") %>%
-  column_spec(2, width = "6cm") %>%
-  column_spec(3, width = "6cm") %>%
-  row_spec(0, bold = TRUE)  # Make the header row bold
-
-
-```
-
-
 \`\`\`
 
 ::: {.content-visible when-format="pdf"}
