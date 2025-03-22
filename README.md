@@ -18,15 +18,15 @@ The code is designed to run efficiently on a standard desktop computer or laptop
 
 ## Instructions for Use
 
-As outlined above, all code is embedded within Quarto files, accompanied by comprehensive instructions on how to execute the scripts. Since this project represents a **Stage 1 Registered Report**, no data have been collected at this stage. 
+As outlined above, all code is embedded within Quarto files, accompanied by comprehensive instructions on how to execute the scripts. Since this project represents a **Stage 1 Registered Report**, no data have been collected at this stage.
 
-The project relies on either openly available data (e.g., extreme weather event data, with sources cited in the relevant Quarto file) or generated data from power simulations. All functions used for power simulations are provided and documented, allowing users to customize assumptions and generate their own simulated data. 
+The project relies on either openly available data (e.g., extreme weather event data, with sources cited in the relevant Quarto file) or generated data from power simulations. All functions used for power simulations are provided and documented, allowing users to customize assumptions and generate their own simulated data.
 
-To reproduce the outputs reported in this project, users can **fork this repository**, follow the **system requirements** instructions, and execute the provided code. 
+To reproduce the outputs reported in this project, users can **fork this repository**, follow the **system requirements** instructions, and execute the provided code.
 
 ## License
 
-This project is released under the terms of the **MIT License** ((https://opensource.org/license/mit)[https://opensource.org/license/mit]).
+This project is released under the terms of the **[MIT License](https://opensource.org/license/mit/)**.
 
 ## Contact
 
