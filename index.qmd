@@ -1,6 +1,6 @@
 ![](images/Logo_Globe_EcoTRACE.jpg){fig-align="center" width="300"}
 
-## Registered Report Supplementary Information
+## Stage 1 Registered Report Supplementary Information and Code Repository
 
 Welcome to our project's supplementary information website. Here, you'll find all the scripts used to preprocess and visualize the data reported in the first stage of our Registered Report, which has been submitted to *Nature Climate Change*:
 

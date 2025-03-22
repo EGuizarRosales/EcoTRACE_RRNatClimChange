@@ -23,6 +23,9 @@ website:
         text: Power Analyses
       - href: scripts/supplementaryInformation.qmd
         text: Supplementary Information
+    right: 
+      - icon: github
+        href: https://github.com/EGuizarRosales/EcoTRACE_RRNatClimChange
   page-footer: 'Site maintained by [emmanuel.guizarrosales@unibe.ch](mailto:emmanuel.guizarrosales@unibe.ch?subject=EcoTRACE%20Registered%20Report)'
 
 format:
